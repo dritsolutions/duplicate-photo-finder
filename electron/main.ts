@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+import os from 'node:os'
 import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
@@ -26,6 +28,7 @@ function createWindow() {
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
+      webSecurity: false,
     },
     titleBarStyle: 'default',
     title: 'Duplicate Photo Finder',
@@ -76,6 +79,25 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow()
   }
+})
+// Handle move to quarantine
+ipcMain.handle('files:moveToQuarantine', async (_event, paths: string[]) => {
+  const quarantineDir = path.join(os.homedir(), 'Pictures', 'DupeFinder-Quarantine')
+  if (!fs.existsSync(quarantineDir)) {
+    fs.mkdirSync(quarantineDir, { recursive: true })
+  }
+  const moved: string[] = []
+  for (const filePath of paths) {
+    try {
+      const filename = path.basename(filePath)
+      const dest = path.join(quarantineDir, filename)
+      fs.renameSync(filePath, dest)
+      moved.push(filePath)
+    } catch {
+      // skip files that can't be moved
+    }
+  }
+  return moved
 })
 
 app.whenReady().then(createWindow)

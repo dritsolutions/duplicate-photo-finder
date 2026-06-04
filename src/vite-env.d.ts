@@ -11,5 +11,6 @@ interface Window {
     ) => Promise<any[]>
     onScanProgress: (callback: (data: { current: number, total: number, file: string }) => void) => void
     removeScanProgressListener: () => void
+    moveToQuarantine: (paths: string[]) => Promise<string[]>
   }
 }

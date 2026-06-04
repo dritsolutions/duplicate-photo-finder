@@ -1,3 +1,4 @@
+import ResultsPage from './components/ResultsPage'
 import { useState } from 'react'
 import Sidebar from './components/Sidebar'
 import ScanPage from './components/ScanPage'
@@ -65,7 +66,10 @@ function App() {
             />
           )}
           {currentPage === 'results' && (
-            <p style={{ color: '#888' }}>Results page coming soon... ({scanResults.length} groups found)</p>
+            <ResultsPage
+              results={scanResults}
+              onNewScan={() => setCurrentPage('scan')}
+            />
           )}
           {currentPage === 'settings' && (
             <p style={{ color: '#888' }}>Settings page coming soon...</p>

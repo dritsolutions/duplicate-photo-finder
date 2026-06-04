@@ -12,4 +12,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('scan:progress', (_event, data) => callback(data)),
   removeScanProgressListener: () =>
     ipcRenderer.removeAllListeners('scan:progress'),
+  moveToQuarantine: (paths: string[]) =>
+    ipcRenderer.invoke('files:moveToQuarantine', paths),
 })
