@@ -11,10 +11,19 @@ function ScanPage() {
   const [scanType, setScanType] = useState<'exact' | 'similar' | 'both'>('both')
   const [includeSubfolders, setIncludeSubfolders] = useState(true)
 
-  const addFolder = () => {
-    // We'll wire this to Electron's dialog later
-    alert('Folder picker coming soon!')
-  }
+const addFolder = async () => {
+  const paths = await window.electronAPI.openFolder()
+  if (paths.length === 0) return
+  const newFolders = paths.map(p => ({
+    path: p,
+    id: Math.random().toString(36).slice(2),
+  }))
+  setFolders(prev => {
+    const existing = prev.map(f => f.path)
+    const unique = newFolders.filter(f => !existing.includes(f.path))
+    return [...prev, ...unique]
+  })
+}
 
   const removeFolder = (id: string) => {
     setFolders(folders.filter(f => f.id !== id))
