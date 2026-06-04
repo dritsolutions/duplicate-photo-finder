@@ -1,3 +1,4 @@
+import LicencePage from './components/LicencePage'
 import SettingsPage from './components/SettingsPage'
 import ResultsPage from './components/ResultsPage'
 import { useState } from 'react'
@@ -72,10 +73,7 @@ function App() {
               onNewScan={() => setCurrentPage('scan')}
             />
           )}
-          {currentPage === 'settings' && <SettingsPage />}
-          {currentPage === 'licence' && (
-            <p style={{ color: '#888' }}>Licence page coming soon...</p>
-          )}
+          {currentPage === 'licence' && <LicencePage />}
         </div>
       </div>
     </div>
