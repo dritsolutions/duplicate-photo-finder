@@ -1,3 +1,4 @@
+import SettingsPage from './components/SettingsPage'
 import ResultsPage from './components/ResultsPage'
 import { useState } from 'react'
 import Sidebar from './components/Sidebar'
@@ -71,9 +72,7 @@ function App() {
               onNewScan={() => setCurrentPage('scan')}
             />
           )}
-          {currentPage === 'settings' && (
-            <p style={{ color: '#888' }}>Settings page coming soon...</p>
-          )}
+          {currentPage === 'settings' && <SettingsPage />}
           {currentPage === 'licence' && (
             <p style={{ color: '#888' }}>Licence page coming soon...</p>
           )}
