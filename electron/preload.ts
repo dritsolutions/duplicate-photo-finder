@@ -14,4 +14,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.removeAllListeners('scan:progress'),
   moveToQuarantine: (paths: string[]) =>
     ipcRenderer.invoke('files:moveToQuarantine', paths),
+  getMachineFingerprint: () => ipcRenderer.invoke('machine:fingerprint'),
+  activateMachine: (licenceKey: string, accountId: string, licenceId: string) =>
+    ipcRenderer.invoke('machine:activate', licenceKey, accountId, licenceId),
+  validateMachine: (licenceKey: string, accountId: string) =>
+    ipcRenderer.invoke('machine:validate', licenceKey, accountId),
 })

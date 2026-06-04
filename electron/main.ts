@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
 import { app, BrowserWindow, ipcMain, dialog } from 'electron'
@@ -18,6 +19,11 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   : RENDERER_DIST
 
 let win: BrowserWindow | null
+
+function getMachineFingerprint(): string {
+  const data = `${os.hostname()}-${os.cpus()[0]?.model}-${os.platform()}`
+  return crypto.createHash('sha256').update(data).digest('hex').slice(0, 32)
+}
 
 function createWindow() {
   win = new BrowserWindow({
@@ -101,3 +107,65 @@ ipcMain.handle('files:moveToQuarantine', async (_event, paths: string[]) => {
 })
 
 app.whenReady().then(createWindow)
+
+// Get machine fingerprint
+ipcMain.handle('machine:fingerprint', () => {
+  return getMachineFingerprint()
+})
+
+// Activate machine with Keygen
+ipcMain.handle('machine:activate', async (_event, licenceKey: string, accountId: string, licenceId: string) => {
+  const fingerprint = getMachineFingerprint()
+  const response = await fetch(
+    `https://api.keygen.sh/v1/accounts/${accountId}/machines`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/vnd.api+json',
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `License ${licenceKey}`,
+      },
+      body: JSON.stringify({
+        data: {
+          type: 'machines',
+          attributes: {
+            fingerprint,
+            name: os.hostname(),
+            platform: os.platform(),
+          },
+          relationships: {
+            license: {
+              data: { type: 'licenses', id: licenceId }
+            }
+          }
+        }
+      }),
+    }
+  )
+  const data = await response.json()
+  console.log('Machine activation response:', response.status, JSON.stringify(data))
+  return { status: response.status, data }
+})
+
+// Validate machine with Keygen
+ipcMain.handle('machine:validate', async (_event, licenceKey: string, accountId: string) => {
+  const fingerprint = getMachineFingerprint()
+  const response = await fetch(
+    `https://api.keygen.sh/v1/accounts/${accountId}/licenses/actions/validate-key`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/vnd.api+json',
+        'Accept': 'application/vnd.api+json',
+      },
+      body: JSON.stringify({
+        meta: {
+          key: licenceKey,
+          scope: { fingerprint }
+        }
+      }),
+    }
+  )
+  const data = await response.json()
+  return { status: response.status, data }
+})

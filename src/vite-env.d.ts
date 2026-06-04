@@ -12,5 +12,8 @@ interface Window {
     onScanProgress: (callback: (data: { current: number, total: number, file: string }) => void) => void
     removeScanProgressListener: () => void
     moveToQuarantine: (paths: string[]) => Promise<string[]>
+    getMachineFingerprint: () => Promise<string>
+    activateMachine: (licenceKey: string, accountId: string, licenceId: string) => Promise<any>
+    validateMachine: (licenceKey: string, accountId: string) => Promise<any>
   }
 }

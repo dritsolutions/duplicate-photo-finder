@@ -5,5 +5,8 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
   startScan: (folders, includeSubfolders, scanType, similarityThreshold) => electron.ipcRenderer.invoke("scan:start", folders, includeSubfolders, scanType, similarityThreshold),
   onScanProgress: (callback) => electron.ipcRenderer.on("scan:progress", (_event, data) => callback(data)),
   removeScanProgressListener: () => electron.ipcRenderer.removeAllListeners("scan:progress"),
-  moveToQuarantine: (paths) => electron.ipcRenderer.invoke("files:moveToQuarantine", paths)
+  moveToQuarantine: (paths) => electron.ipcRenderer.invoke("files:moveToQuarantine", paths),
+  getMachineFingerprint: () => electron.ipcRenderer.invoke("machine:fingerprint"),
+  activateMachine: (licenceKey, accountId, licenceId) => electron.ipcRenderer.invoke("machine:activate", licenceKey, accountId, licenceId),
+  validateMachine: (licenceKey, accountId) => electron.ipcRenderer.invoke("machine:validate", licenceKey, accountId)
 });

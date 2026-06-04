@@ -30,6 +30,7 @@ function LicencePage() {
     setStatus('activating')
     setErrorMsg('')
     try {
+      // Step 1: Validate the key
       const response = await fetch(
         `https://api.keygen.sh/v1/accounts/${KEYGEN_ACCOUNT}/licenses/actions/validate-key`,
         {
@@ -42,11 +43,41 @@ function LicencePage() {
         }
       )
       const data = await response.json()
-      if (data.meta && data.meta.valid) {
+
+      if (!data.meta?.valid) {
+        const code = data.meta?.code || 'UNKNOWN'
+        if (code === 'NOT_FOUND') setErrorMsg('Licence key not found.')
+        else if (code === 'EXPIRED') setErrorMsg('This licence key has expired.')
+        else if (code === 'SUSPENDED') setErrorMsg('This licence key has been suspended.')
+        else if (code === 'TOO_MANY_MACHINES') setErrorMsg('This licence key has reached its machine limit.')
+        else setErrorMsg('Invalid licence key. Please check and try again.')
+        setStatus('invalid')
+        return
+      }
+
+      // Step 2: Activate this machine
+      const licenceId = data.data?.id || ""
+      console.log('Calling activateMachine...')
+      const activation = await window.electronAPI.activateMachine(key.trim(), KEYGEN_ACCOUNT, licenceId)
+      console.log('Activation result:', JSON.stringify(activation))
+
+      // 201 = newly activated, 422 = already activated on this machine (both are fine)
+      if (activation.status !== 201 && activation.status !== 422) {
+        const errCode = activation.data?.errors?.[0]?.code || ''
+        if (errCode === 'MACHINE_LIMIT_EXCEEDED' || errCode === 'TOO_MANY_MACHINES') {
+          setErrorMsg('This licence key is already activated on another computer.')
+          setStatus('invalid')
+          return
+        }
+      }
+
+      // Step 3: Re-validate with machine fingerprint
+      const revalidation = await window.electronAPI.validateMachine(key.trim(), KEYGEN_ACCOUNT)
+
+      if (revalidation.data?.meta?.valid) {
         const info = {
           key: key.trim(),
           id: data.data?.id,
-          name: data.data?.attributes?.name || 'Licence',
           expiry: data.data?.attributes?.expiry || null,
           activatedAt: new Date().toISOString(),
         }
@@ -54,15 +85,11 @@ function LicencePage() {
         setLicenceInfo(info)
         setStatus('active')
       } else {
-        const code = data.meta?.code || 'UNKNOWN'
-        if (code === 'NOT_FOUND') setErrorMsg('Licence key not found. Please check and try again.')
-        else if (code === 'EXPIRED') setErrorMsg('This licence key has expired.')
-        else if (code === 'SUSPENDED') setErrorMsg('This licence key has been suspended.')
-        else if (code === 'TOO_MANY_MACHINES') setErrorMsg('This licence key has reached its machine limit.')
-        else setErrorMsg('Invalid licence key. Please check and try again.')
+        setErrorMsg('Machine activation failed. Please try again.')
         setStatus('invalid')
       }
-    } catch {
+    } catch (err) {
+      console.error('Activation error:', err)
       setErrorMsg('Could not connect to licence server. Please check your internet connection.')
       setStatus('error')
     }
@@ -91,7 +118,7 @@ function LicencePage() {
             <div style={{ fontSize: '2rem' }}>✅</div>
             <div>
               <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#4ecdc4' }}>Licence Active</div>
-              <div style={{ fontSize: '0.8rem', color: '#555' }}>Your copy is fully activated</div>
+              <div style={{ fontSize: '0.8rem', color: '#555' }}>Your copy is fully activated on this computer</div>
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -145,7 +172,7 @@ function LicencePage() {
           Activate Your Licence
         </h2>
         <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '20px' }}>
-          Enter your licence key below to unlock all features of Duplicate Photo Finder.
+          Enter your licence key below to unlock all features. Each key can only be activated on one computer.
         </p>
         <div style={{ marginBottom: '12px' }}>
           <input
