@@ -1,9 +1,16 @@
-import ScanPage from './components/ScanPage'
 import { useState } from 'react'
 import Sidebar from './components/Sidebar'
+import ScanPage from './components/ScanPage'
+import ScanProgress from './components/ScanProgress'
 
 function App() {
   const [currentPage, setCurrentPage] = useState('scan')
+  const [scanResults, setScanResults] = useState<any[]>([])
+  const [scanProgress, setScanProgress] = useState({
+    current: 0,
+    total: 0,
+    file: '',
+  })
 
   return (
     <div style={{
@@ -22,28 +29,43 @@ function App() {
         overflow: 'hidden',
       }}>
         {/* Header */}
-        <div style={{
-          padding: '20px 28px',
-          borderBottom: '1px solid #2a2a3a',
-          background: '#1a1a24',
-        }}>
-          <h1 style={{ fontSize: '1.3rem', fontWeight: 600 }}>
-            {currentPage === 'scan' && '🔍 New Scan'}
-            {currentPage === 'results' && '📋 Results'}
-            {currentPage === 'settings' && '⚙️ Settings'}
-            {currentPage === 'licence' && '🔑 Licence'}
-          </h1>
-        </div>
+        {currentPage !== 'progress' && (
+          <div style={{
+            padding: '20px 28px',
+            borderBottom: '1px solid #2a2a3a',
+            background: '#1a1a24',
+          }}>
+            <h1 style={{ fontSize: '1.3rem', fontWeight: 600 }}>
+              {currentPage === 'scan' && '🔍 New Scan'}
+              {currentPage === 'results' && '📋 Results'}
+              {currentPage === 'settings' && '⚙️ Settings'}
+              {currentPage === 'licence' && '🔑 Licence'}
+            </h1>
+          </div>
+        )}
 
         {/* Page Content */}
         <div style={{
           flex: 1,
-          padding: '28px',
+          padding: currentPage === 'progress' ? '0' : '28px',
           overflowY: 'auto',
         }}>
-          {currentPage === 'scan' && <ScanPage />}
+          {currentPage === 'scan' && (
+            <ScanPage
+              onScanComplete={(results) => setScanResults(results)}
+              onScanStart={(progress) => setScanProgress(progress)}
+              onNavigate={setCurrentPage}
+            />
+          )}
+          {currentPage === 'progress' && (
+            <ScanProgress
+              current={scanProgress.current}
+              total={scanProgress.total}
+              currentFile={scanProgress.file}
+            />
+          )}
           {currentPage === 'results' && (
-            <p style={{ color: '#888' }}>Results page coming soon...</p>
+            <p style={{ color: '#888' }}>Results page coming soon... ({scanResults.length} groups found)</p>
           )}
           {currentPage === 'settings' && (
             <p style={{ color: '#888' }}>Settings page coming soon...</p>

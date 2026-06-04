@@ -5,36 +5,67 @@ interface ScanFolder {
   id: string
 }
 
-function ScanPage() {
+interface ScanPageProps {
+  onScanComplete: (results: any[]) => void
+  onScanStart: (progress: { current: number, total: number, file: string }) => void
+  onNavigate: (page: string) => void
+}
+
+function ScanPage({ onScanComplete, onScanStart, onNavigate }: ScanPageProps) {
   const [folders, setFolders] = useState<ScanFolder[]>([])
   const [similarity, setSimilarity] = useState(90)
   const [scanType, setScanType] = useState<'exact' | 'similar' | 'both'>('both')
   const [includeSubfolders, setIncludeSubfolders] = useState(true)
+  const [isScanning, setIsScanning] = useState(false)
 
-const addFolder = async () => {
-  const paths = await window.electronAPI.openFolder()
-  if (paths.length === 0) return
-  const newFolders = paths.map(p => ({
-    path: p,
-    id: Math.random().toString(36).slice(2),
-  }))
-  setFolders(prev => {
-    const existing = prev.map(f => f.path)
-    const unique = newFolders.filter(f => !existing.includes(f.path))
-    return [...prev, ...unique]
-  })
-}
+  const addFolder = async () => {
+    const paths = await window.electronAPI.openFolder()
+    if (paths.length === 0) return
+    const newFolders = paths.map(p => ({
+      path: p,
+      id: Math.random().toString(36).slice(2),
+    }))
+    setFolders(prev => {
+      const existing = prev.map(f => f.path)
+      const unique = newFolders.filter(f => !existing.includes(f.path))
+      return [...prev, ...unique]
+    })
+  }
 
   const removeFolder = (id: string) => {
     setFolders(folders.filter(f => f.id !== id))
   }
 
-  const startScan = () => {
+  const startScan = async () => {
     if (folders.length === 0) {
       alert('Please add at least one folder to scan.')
       return
     }
-    alert('Scan starting soon!')
+
+    setIsScanning(true)
+    onNavigate('progress')
+
+    window.electronAPI.onScanProgress((data) => {
+      onScanStart(data)
+    })
+
+    try {
+      const results = await window.electronAPI.startScan(
+        folders.map(f => f.path),
+        includeSubfolders,
+        scanType,
+        similarity
+      )
+      window.electronAPI.removeScanProgressListener()
+      onScanComplete(results)
+      onNavigate('results')
+    } catch (err) {
+      console.error('Scan failed:', err)
+      alert('Scan failed. Please try again.')
+      onNavigate('scan')
+    } finally {
+      setIsScanning(false)
+    }
   }
 
   return (
@@ -45,8 +76,6 @@ const addFolder = async () => {
         <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px', color: '#ccc' }}>
           📁 Folders to Scan
         </h2>
-
-        {/* Folder List */}
         <div style={{
           background: '#1a1a24',
           border: '1px solid #2a2a3a',
@@ -94,7 +123,6 @@ const addFolder = async () => {
             ))
           )}
         </div>
-
         <button
           onClick={addFolder}
           style={{
@@ -211,6 +239,7 @@ const addFolder = async () => {
       {/* Start Scan Button */}
       <button
         onClick={startScan}
+        disabled={isScanning}
         style={{
           width: '100%',
           padding: '16px',
@@ -220,13 +249,13 @@ const addFolder = async () => {
           color: 'white',
           fontSize: '1.1rem',
           fontWeight: 700,
-          cursor: 'pointer',
+          cursor: isScanning ? 'not-allowed' : 'pointer',
+          opacity: isScanning ? 0.7 : 1,
           letterSpacing: '0.5px',
         }}
       >
         🚀 Start Scan
       </button>
-
     </div>
   )
 }
