@@ -1,20 +1,59 @@
+import { useState } from 'react'
+import Sidebar from './components/Sidebar'
+
 function App() {
+  const [currentPage, setCurrentPage] = useState('scan')
+
   return (
     <div style={{
       display: 'flex',
-      flexDirection: 'column',
       height: '100vh',
       background: '#0f0f13',
       color: 'white',
-      alignItems: 'center',
-      justifyContent: 'center'
     }}>
-      <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>
-        🔍 Duplicate Photo Finder
-      </h1>
-      <p style={{ color: '#888' }}>
-        Find and remove duplicate photos from your computer
-      </p>
+      <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
+
+      {/* Main Content */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}>
+        {/* Header */}
+        <div style={{
+          padding: '20px 28px',
+          borderBottom: '1px solid #2a2a3a',
+          background: '#1a1a24',
+        }}>
+          <h1 style={{ fontSize: '1.3rem', fontWeight: 600 }}>
+            {currentPage === 'scan' && '🔍 New Scan'}
+            {currentPage === 'results' && '📋 Results'}
+            {currentPage === 'settings' && '⚙️ Settings'}
+            {currentPage === 'licence' && '🔑 Licence'}
+          </h1>
+        </div>
+
+        {/* Page Content */}
+        <div style={{
+          flex: 1,
+          padding: '28px',
+          overflowY: 'auto',
+        }}>
+          {currentPage === 'scan' && (
+            <p style={{ color: '#888' }}>Scan page coming soon...</p>
+          )}
+          {currentPage === 'results' && (
+            <p style={{ color: '#888' }}>Results page coming soon...</p>
+          )}
+          {currentPage === 'settings' && (
+            <p style={{ color: '#888' }}>Settings page coming soon...</p>
+          )}
+          {currentPage === 'licence' && (
+            <p style={{ color: '#888' }}>Licence page coming soon...</p>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
