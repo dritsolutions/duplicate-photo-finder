@@ -1,3 +1,4 @@
+import ScanPage from './components/ScanPage'
 import { useState } from 'react'
 import Sidebar from './components/Sidebar'
 
@@ -40,9 +41,7 @@ function App() {
           padding: '28px',
           overflowY: 'auto',
         }}>
-          {currentPage === 'scan' && (
-            <p style={{ color: '#888' }}>Scan page coming soon...</p>
-          )}
+          {currentPage === 'scan' && <ScanPage />}
           {currentPage === 'results' && (
             <p style={{ color: '#888' }}>Results page coming soon...</p>
           )}
