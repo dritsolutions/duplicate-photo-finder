@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
+import { scanFolders } from './scanner'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -49,6 +50,19 @@ ipcMain.handle('dialog:openFolder', async () => {
   })
   if (result.canceled) return []
   return result.filePaths
+})
+// Handle scan
+ipcMain.handle('scan:start', async (_event, folders, includeSubfolders, scanType, similarityThreshold) => {
+  const results = await scanFolders(
+    folders,
+    includeSubfolders,
+    scanType,
+    similarityThreshold,
+    (current, total, file) => {
+      win?.webContents.send('scan:progress', { current, total, file })
+    }
+  )
+  return results
 })
 
 app.on('window-all-closed', () => {
