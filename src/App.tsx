@@ -73,6 +73,7 @@ function App() {
               onNewScan={() => setCurrentPage('scan')}
             />
           )}
+          {currentPage === 'settings' && <SettingsPage />}
           {currentPage === 'licence' && <LicencePage />}
         </div>
       </div>
