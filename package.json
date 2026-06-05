@@ -1,7 +1,9 @@
 {
   "name": "duplicate-photo-finder",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Find and remove duplicate photos from your computer",
+  "author": "DritSolutions",
   "type": "module",
 "scripts": {
     "dev": "vite",

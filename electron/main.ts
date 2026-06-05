@@ -1,3 +1,4 @@
+import { Menu } from 'electron'
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
@@ -26,6 +27,7 @@ function getMachineFingerprint(): string {
 }
 
 function createWindow() {
+  Menu.setApplicationMenu(null)
   win = new BrowserWindow({
     width: 1100,
     height: 700,
