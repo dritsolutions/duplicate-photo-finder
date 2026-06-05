@@ -9,6 +9,11 @@
     "dist",
     "dist-electron"
   ],
+  publish: {
+    provider: "github",
+    owner: "dritsolutions",
+    repo: "duplicate-photo-finder"
+  },
   win: {
     target: [
       {

@@ -1,3 +1,4 @@
+import { autoUpdater } from 'electron-updater'
 import { Menu } from 'electron'
 import crypto from 'node:crypto'
 import fs from 'node:fs'
@@ -25,7 +26,34 @@ function getMachineFingerprint(): string {
   const data = `${os.hostname()}-${os.cpus()[0]?.model}-${os.platform()}`
   return crypto.createHash('sha256').update(data).digest('hex').slice(0, 32)
 }
+function setupAutoUpdater() {
+  autoUpdater.autoDownload = true
+  autoUpdater.autoInstallOnAppQuit = true
 
+  autoUpdater.on('checking-for-update', () => {
+    win?.webContents.send('updater:checking')
+  })
+
+  autoUpdater.on('update-available', (info) => {
+    win?.webContents.send('updater:available', info)
+  })
+
+  autoUpdater.on('update-not-available', () => {
+    win?.webContents.send('updater:not-available')
+  })
+
+  autoUpdater.on('download-progress', (progress) => {
+    win?.webContents.send('updater:progress', progress)
+  })
+
+  autoUpdater.on('update-downloaded', () => {
+    win?.webContents.send('updater:downloaded')
+  })
+
+  autoUpdater.on('error', (err) => {
+    win?.webContents.send('updater:error', err.message)
+  })
+}
 function createWindow() {
   Menu.setApplicationMenu(null)
   win = new BrowserWindow({
@@ -51,8 +79,23 @@ function createWindow() {
   } else {
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
   }
+  // Check for updates after window loads (only in production)
+  if (!VITE_DEV_SERVER_URL) {
+    setTimeout(() => {
+      setupAutoUpdater()
+      autoUpdater.checkForUpdates()
+    }, 3000)
+  }
 }
+// Handle manual update check
+ipcMain.handle('updater:check', () => {
+  autoUpdater.checkForUpdates()
+})
 
+// Handle install update
+ipcMain.handle('updater:install', () => {
+  autoUpdater.quitAndInstall()
+})
 // Handle folder picker dialog
 ipcMain.handle('dialog:openFolder', async () => {
   const result = await dialog.showOpenDialog(win!, {

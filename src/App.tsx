@@ -1,3 +1,4 @@
+import UpdateNotification from './components/UpdateNotification'
 import LicencePage from './components/LicencePage'
 import SettingsPage from './components/SettingsPage'
 import ResultsPage from './components/ResultsPage'
@@ -77,6 +78,7 @@ function App() {
           {currentPage === 'licence' && <LicencePage />}
         </div>
       </div>
+      <UpdateNotification />
     </div>
   )
 }

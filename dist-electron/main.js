@@ -1,10 +1,10 @@
+import { M, R, V } from "./main-Ct3DIMYx.js";
 import "electron";
 import "node:crypto";
 import "node:fs";
 import "node:os";
 import "node:url";
 import "node:path";
-import { M, R, V } from "./main-cEcLk8sj.js";
 export {
   M as MAIN_DIST,
   R as RENDERER_DIST,

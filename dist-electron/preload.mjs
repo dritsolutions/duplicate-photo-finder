@@ -8,5 +8,11 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
   moveToQuarantine: (paths) => electron.ipcRenderer.invoke("files:moveToQuarantine", paths),
   getMachineFingerprint: () => electron.ipcRenderer.invoke("machine:fingerprint"),
   activateMachine: (licenceKey, accountId, licenceId) => electron.ipcRenderer.invoke("machine:activate", licenceKey, accountId, licenceId),
-  validateMachine: (licenceKey, accountId) => electron.ipcRenderer.invoke("machine:validate", licenceKey, accountId)
+  validateMachine: (licenceKey, accountId) => electron.ipcRenderer.invoke("machine:validate", licenceKey, accountId),
+  onUpdaterEvent: (callback) => {
+    electron.ipcRenderer.on("updater:available", (_e, data) => callback("updater:available", data));
+    electron.ipcRenderer.on("updater:progress", (_e, data) => callback("updater:progress", data));
+    electron.ipcRenderer.on("updater:downloaded", (_e) => callback("updater:downloaded", null));
+  },
+  installUpdate: () => electron.ipcRenderer.invoke("updater:install")
 });
