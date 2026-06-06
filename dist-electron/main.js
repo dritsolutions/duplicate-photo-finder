@@ -4,7 +4,7 @@ import "node:fs";
 import "node:os";
 import "node:url";
 import "node:path";
-import { M, R, V } from "./main-BqkNhm0_.js";
+import { M, R, V } from "./main-Drh1yVCT.js";
 export {
   M as MAIN_DIST,
   R as RENDERER_DIST,

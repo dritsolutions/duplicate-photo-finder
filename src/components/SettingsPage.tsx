@@ -232,7 +232,7 @@ function SettingsPage() {
               })
               const data = await response.json()
               const latest = (data.tag_name || '').replace('v', '')
-              if (latest && latest !== '1.0.1') {
+              if (latest && latest !== '1.0.2') {
                 alert(`Version ${latest} is available! Click Download Update to get it.`)
               } else {
                 alert('You are on the latest version!')
