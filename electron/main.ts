@@ -178,7 +178,62 @@ ipcMain.handle('machine:activate', async (_event, licenceKey: string, accountId:
   const data = await response.json()
   return { status: response.status, data }
 })
+// Register trial machine with Keygen
+ipcMain.handle('trial:register', async () => {
+  const fingerprint = getMachineFingerprint()
+  const TRIAL_LICENCE_KEY = '5F3E67-624CF9-F10030-21105B-DE3135-V3'
+  const TRIAL_LICENCE_ID = 'e3df20b3-3de9-4384-9ca2-8e4b126e3750'
+  const KEYGEN_ACCOUNT = 'b939a4c4-45e7-4977-8b72-bc276d3c013a'
 
+  try {
+    // Check if already registered
+    const checkResponse = await fetch(
+      `https://api.keygen.sh/v1/accounts/${KEYGEN_ACCOUNT}/machines?fingerprint=${fingerprint}`,
+      {
+        headers: {
+          'Authorization': `License ${TRIAL_LICENCE_KEY}`,
+          'Accept': 'application/vnd.api+json',
+        }
+      }
+    )
+    const checkData = await checkResponse.json()
+    if (checkData.data && checkData.data.length > 0) {
+      return { status: 'already_registered' }
+    }
+
+    // Register machine
+    const response = await fetch(
+      `https://api.keygen.sh/v1/accounts/${KEYGEN_ACCOUNT}/machines`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/vnd.api+json',
+          'Accept': 'application/vnd.api+json',
+          'Authorization': `License ${TRIAL_LICENCE_KEY}`,
+        },
+        body: JSON.stringify({
+          data: {
+            type: 'machines',
+            attributes: {
+              fingerprint,
+              name: os.hostname(),
+              platform: os.platform(),
+            },
+            relationships: {
+              license: {
+                data: { type: 'licenses', id: TRIAL_LICENCE_ID }
+              }
+            }
+          }
+        }),
+      }
+    )
+    const data = await response.json()
+    return { status: response.status === 201 ? 'registered' : 'failed', data }
+  } catch (err: any) {
+    return { status: 'error', message: err.message }
+  }
+})
 // Validate machine with Keygen
 ipcMain.handle('machine:validate', async (_event, licenceKey: string, accountId: string) => {
   const fingerprint = getMachineFingerprint()

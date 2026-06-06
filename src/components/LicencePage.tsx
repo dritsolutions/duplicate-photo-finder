@@ -4,7 +4,11 @@ const KEYGEN_ACCOUNT = 'b939a4c4-45e7-4977-8b72-bc276d3c013a'
 
 type LicenceStatus = 'unactivated' | 'activating' | 'active' | 'invalid' | 'error'
 
-function LicencePage() {
+interface LicencePageProps {
+  onActivated: () => void
+}
+
+function LicencePage({ onActivated }: LicencePageProps) {
   const [key, setKey] = useState('')
   const [status, setStatus] = useState<LicenceStatus>('unactivated')
   const [licenceInfo, setLicenceInfo] = useState<any>(null)
@@ -84,6 +88,7 @@ function LicencePage() {
         localStorage.setItem('dupefinder-licence', JSON.stringify(info))
         setLicenceInfo(info)
         setStatus('active')
+        onActivated()
       } else {
         setErrorMsg('Machine activation failed. Please try again.')
         setStatus('invalid')

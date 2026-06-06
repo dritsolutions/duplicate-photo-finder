@@ -18,6 +18,10 @@ interface DuplicateGroup {
 interface ResultsPageProps {
   results: DuplicateGroup[]
   onNewScan: () => void
+  isLicenced: boolean
+  actionsRemaining: number
+  performAction: () => boolean
+  onUpgrade: () => void
 }
 
 function formatSize(bytes: number): string {
@@ -26,7 +30,7 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-function ResultsPage({ results, onNewScan }: ResultsPageProps) {
+function ResultsPage({ results, onNewScan, isLicenced, actionsRemaining, performAction, onUpgrade }: ResultsPageProps) {
   const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set())
   const [deletedPhotos, setDeletedPhotos] = useState<Set<string>>(new Set())
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
@@ -66,6 +70,16 @@ function ResultsPage({ results, onNewScan }: ResultsPageProps) {
       alert('No photos selected.')
       return
     }
+
+    // Check trial limit
+    if (!performAction()) {
+      const upgrade = window.confirm(
+        'You have used all 3 free quarantine actions.\n\nUpgrade to unlock unlimited actions and all features.\n\nClick OK to go to the licence page.'
+      )
+      if (upgrade) onUpgrade()
+      return
+    }
+
     const confirmed = window.confirm(
       `Move ${selectedPhotos.size} photo(s) to quarantine folder? You can review and permanently delete them later.`
     )
@@ -149,6 +163,38 @@ function ResultsPage({ results, onNewScan }: ResultsPageProps) {
         gap: '12px',
         flexShrink: 0,
       }}>
+        {/* Trial Banner */}
+      {!isLicenced && (
+        <div style={{
+          background: '#2a1a0a',
+          border: '1px solid #f9ca24',
+          borderRadius: '8px',
+          padding: '10px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexShrink: 0,
+        }}>
+          <div style={{ fontSize: '0.85rem', color: '#f9ca24' }}>
+            ⚡ Trial Mode — {actionsRemaining} free quarantine action{actionsRemaining !== 1 ? 's' : ''} remaining
+          </div>
+          <button
+            onClick={onUpgrade}
+            style={{
+              padding: '6px 14px',
+              background: '#f9ca24',
+              border: 'none',
+              borderRadius: '6px',
+              color: '#000',
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+            }}
+          >
+            Upgrade
+          </button>
+        </div>
+      )}
         <div style={{ display: 'flex', gap: '24px' }}>
           <div>
             <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#6c63ff' }}>{activeResults.length}</div>

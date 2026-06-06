@@ -1,3 +1,4 @@
+import { useTrial } from './hooks/useTrial'
 import UpdateNotification from './components/UpdateNotification'
 import LicencePage from './components/LicencePage'
 import SettingsPage from './components/SettingsPage'
@@ -15,6 +16,13 @@ function App() {
     total: 0,
     file: '',
   })
+
+  const [isLicenced, setIsLicenced] = useState(() => {
+    const stored = localStorage.getItem('dupefinder-licence')
+    return !!stored
+  })
+
+  const { canPerformAction, performAction, actionsRemaining } = useTrial(isLicenced)
 
   return (
     <div style={{
@@ -72,10 +80,16 @@ function App() {
             <ResultsPage
               results={scanResults}
               onNewScan={() => setCurrentPage('scan')}
+              isLicenced={isLicenced}
+              actionsRemaining={actionsRemaining}
+              performAction={performAction}
+              onUpgrade={() => setCurrentPage('licence')}
             />
           )}
           {currentPage === 'settings' && <SettingsPage />}
-          {currentPage === 'licence' && <LicencePage />}
+          {currentPage === 'licence' && (
+            <LicencePage onActivated={() => setIsLicenced(true)} />
+          )}
         </div>
       </div>
       <UpdateNotification />
