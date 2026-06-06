@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import LazyImage from './LazyImage'
 
 interface Photo {
   id: string
@@ -31,6 +32,8 @@ function ResultsPage({ results, onNewScan }: ResultsPageProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     new Set(results.map(r => r.id))
   )
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 50
 
   const togglePhoto = (photoId: string) => {
     setSelectedPhotos(prev => {
@@ -128,6 +131,8 @@ function ResultsPage({ results, onNewScan }: ResultsPageProps) {
     )
   }
 
+  const visibleResults = activeResults.slice(0, page * PAGE_SIZE)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
 
@@ -209,7 +214,7 @@ function ResultsPage({ results, onNewScan }: ResultsPageProps) {
 
       {/* Duplicate Groups */}
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', paddingBottom: '20px' }}>
-        {activeResults.map((group, groupIndex) => (
+        {visibleResults.map((group, groupIndex) => (
           <div key={group.id} style={{
             background: '#1a1a24',
             border: '1px solid #2a2a3a',
@@ -273,9 +278,9 @@ function ResultsPage({ results, onNewScan }: ResultsPageProps) {
                         transition: 'border-color 0.15s ease',
                       }}
                     >
-                   {/* Photo Preview */}
+                      {/* Photo Preview */}
                       <div style={{ position: 'relative' }}>
-                        <img
+                        <LazyImage
                           src={`file://${photo.path}`}
                           alt={filename}
                           style={{
@@ -284,10 +289,6 @@ function ResultsPage({ results, onNewScan }: ResultsPageProps) {
                             display: 'block',
                             borderRadius: '6px 6px 0 0',
                           }}
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none'
-                          }}
-                        
                         />
                         {photoIndex === 0 && (
                           <div style={{
@@ -344,6 +345,25 @@ function ResultsPage({ results, onNewScan }: ResultsPageProps) {
             )}
           </div>
         ))}
+
+        {/* Load More */}
+        {activeResults.length > page * PAGE_SIZE && (
+          <button
+            onClick={() => setPage(p => p + 1)}
+            style={{
+              padding: '12px',
+              background: '#2a2a3f',
+              border: '1px dashed #4a4a6a',
+              borderRadius: '8px',
+              color: '#888',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              width: '100%',
+            }}
+          >
+            Load More ({activeResults.length - page * PAGE_SIZE} remaining)
+          </button>
+        )}
       </div>
     </div>
   )
