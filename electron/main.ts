@@ -80,16 +80,23 @@ function createWindow() {
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
   }
   // Check for updates after window loads (only in production)
-  if (!VITE_DEV_SERVER_URL) {
+ if (!VITE_DEV_SERVER_URL) {
     setTimeout(() => {
       setupAutoUpdater()
-      autoUpdater.checkForUpdates()
-    }, 3000)
+      autoUpdater.checkForUpdates().catch(err => {
+        console.error('Auto update check failed:', err)
+      })
+    }, 5000)
   }
 }
-// Handle manual update check
-ipcMain.handle('updater:check', () => {
-  autoUpdater.checkForUpdates()
+// Manual update check
+ipcMain.handle('updater:check', async () => {
+  try {
+    setupAutoUpdater()
+    await autoUpdater.checkForUpdates()
+  } catch (err: any) {
+    return { error: err.message }
+  }
 })
 
 // Handle install update

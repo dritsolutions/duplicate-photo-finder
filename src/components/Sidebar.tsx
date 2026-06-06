@@ -31,7 +31,7 @@ function Sidebar({ currentPage, onNavigate }: SidebarProps) {
           🔍 DupeFinder
         </div>
         <div style={{ fontSize: '0.7rem', color: '#555', marginTop: '2px' }}>
-          v1.0.0
+          v1.0.1
         </div>
       </div>
 

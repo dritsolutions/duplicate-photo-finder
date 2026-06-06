@@ -1,4 +1,4 @@
-import { M, R, V } from "./main-Ct3DIMYx.js";
+import { M, R, V } from "./main-Lf_iTQ6Q.js";
 import "electron";
 import "node:crypto";
 import "node:fs";

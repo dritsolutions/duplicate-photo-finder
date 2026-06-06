@@ -14,5 +14,6 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
     electron.ipcRenderer.on("updater:progress", (_e, data) => callback("updater:progress", data));
     electron.ipcRenderer.on("updater:downloaded", (_e) => callback("updater:downloaded", null));
   },
-  installUpdate: () => electron.ipcRenderer.invoke("updater:install")
+  installUpdate: () => electron.ipcRenderer.invoke("updater:install"),
+  checkForUpdates: () => electron.ipcRenderer.invoke("updater:check")
 });

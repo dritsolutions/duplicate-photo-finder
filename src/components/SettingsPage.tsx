@@ -26,12 +26,6 @@ function SettingsPage() {
       try {
         setSettings(JSON.parse(stored))
       } catch {}
-    } else {
-      // Set default quarantine folder
-      setSettings(prev => ({
-        ...prev,
-        quarantineFolder: 'C:\\Users\\' + (window as any).username + '\\Pictures\\DupeFinder-Quarantine',
-      }))
     }
   }, [])
 
@@ -62,7 +56,6 @@ function SettingsPage() {
   return (
     <div style={{ maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
 
-      {/* Quarantine Folder */}
       <section>
         <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '6px', color: '#ccc' }}>
           📦 Quarantine Folder
@@ -103,7 +96,6 @@ function SettingsPage() {
         </div>
       </section>
 
-      {/* Default Scan Type */}
       <section>
         <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '6px', color: '#ccc' }}>
           🎯 Default Scan Type
@@ -137,7 +129,6 @@ function SettingsPage() {
         </div>
       </section>
 
-      {/* Default Similarity */}
       <section>
         <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '6px', color: '#ccc' }}>
           🎚️ Default Similarity Threshold
@@ -175,7 +166,6 @@ function SettingsPage() {
         </div>
       </section>
 
-      {/* Include Subfolders */}
       <section>
         <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '6px', color: '#ccc' }}>
           ⚙️ Default Options
@@ -198,7 +188,6 @@ function SettingsPage() {
         </label>
       </section>
 
-      {/* Supported Formats */}
       <section>
         <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '6px', color: '#ccc' }}>
           🖼️ Supported Formats
@@ -228,7 +217,32 @@ function SettingsPage() {
         </div>
       </section>
 
-      {/* Save Button */}
+      <section>
+        <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '6px', color: '#ccc' }}>
+          🔄 Updates
+        </h2>
+        <p style={{ fontSize: '0.8rem', color: '#555', marginBottom: '12px' }}>
+          Current version: v1.0.1
+        </p>
+        <button
+          onClick={async () => {
+            await window.electronAPI.checkForUpdates()
+            alert('Checking for updates... You will be notified if an update is available.')
+          }}
+          style={{
+            padding: '10px 20px',
+            background: '#2a2a3f',
+            border: '1px solid #4a4a6a',
+            borderRadius: '8px',
+            color: '#ccc',
+            cursor: 'pointer',
+            fontSize: '0.85rem',
+          }}
+        >
+          🔄 Check for Updates
+        </button>
+      </section>
+
       <button
         onClick={save}
         style={{
