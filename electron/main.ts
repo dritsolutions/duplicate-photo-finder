@@ -1,9 +1,8 @@
-import { autoUpdater } from 'electron-updater'
 import { Menu } from 'electron'
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
-import { app, BrowserWindow, ipcMain, dialog } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { scanFolders } from './scanner'
@@ -20,40 +19,35 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, 'public')
   : RENDERER_DIST
 
+const CURRENT_VERSION = '1.0.1'
+const GITHUB_RELEASES_URL = 'https://github.com/dritsolutions/duplicate-photo-finder/releases/latest'
+const GITHUB_API_URL = 'https://api.github.com/repos/dritsolutions/duplicate-photo-finder/releases/latest'
+
 let win: BrowserWindow | null
 
 function getMachineFingerprint(): string {
   const data = `${os.hostname()}-${os.cpus()[0]?.model}-${os.platform()}`
   return crypto.createHash('sha256').update(data).digest('hex').slice(0, 32)
 }
-function setupAutoUpdater() {
-  autoUpdater.autoDownload = true
-  autoUpdater.autoInstallOnAppQuit = true
 
-  autoUpdater.on('checking-for-update', () => {
-    win?.webContents.send('updater:checking')
-  })
-
-  autoUpdater.on('update-available', (info) => {
-    win?.webContents.send('updater:available', info)
-  })
-
-  autoUpdater.on('update-not-available', () => {
-    win?.webContents.send('updater:not-available')
-  })
-
-  autoUpdater.on('download-progress', (progress) => {
-    win?.webContents.send('updater:progress', progress)
-  })
-
-  autoUpdater.on('update-downloaded', () => {
-    win?.webContents.send('updater:downloaded')
-  })
-
-  autoUpdater.on('error', (err) => {
-    win?.webContents.send('updater:error', err.message)
-  })
+async function checkForUpdates() {
+  try {
+    const response = await fetch(GITHUB_API_URL, {
+      headers: { 'User-Agent': 'duplicate-photo-finder' }
+    })
+    const data = await response.json() as any
+    const latestVersion = (data.tag_name || '').replace('v', '')
+    if (latestVersion && latestVersion !== CURRENT_VERSION) {
+      win?.webContents.send('updater:available', {
+        version: latestVersion,
+        url: GITHUB_RELEASES_URL
+      })
+    }
+  } catch (err) {
+    console.error('Update check failed:', err)
+  }
 }
+
 function createWindow() {
   Menu.setApplicationMenu(null)
   win = new BrowserWindow({
@@ -74,35 +68,35 @@ function createWindow() {
     win?.webContents.send('main-process-message', (new Date).toLocaleString())
   })
 
+  // Allow dev tools with F12
+  win.webContents.on('before-input-event', (_event, input) => {
+    if (input.key === 'F12') {
+      win?.webContents.openDevTools()
+    }
+  })
+
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
   } else {
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
   }
-  // Check for updates after window loads (only in production)
- if (!VITE_DEV_SERVER_URL) {
-    setTimeout(() => {
-      setupAutoUpdater()
-      autoUpdater.checkForUpdates().catch(err => {
-        console.error('Auto update check failed:', err)
-      })
-    }, 5000)
+
+  // Check for updates after window loads
+  if (!VITE_DEV_SERVER_URL) {
+    setTimeout(checkForUpdates, 5000)
   }
 }
+
 // Manual update check
 ipcMain.handle('updater:check', async () => {
-  try {
-    setupAutoUpdater()
-    await autoUpdater.checkForUpdates()
-  } catch (err: any) {
-    return { error: err.message }
-  }
+  await checkForUpdates()
 })
 
-// Handle install update
-ipcMain.handle('updater:install', () => {
-  autoUpdater.quitAndInstall()
+// Open browser to download update
+ipcMain.handle('updater:download', () => {
+  shell.openExternal(GITHUB_RELEASES_URL)
 })
+
 // Handle folder picker dialog
 ipcMain.handle('dialog:openFolder', async () => {
   const result = await dialog.showOpenDialog(win!, {
@@ -112,6 +106,7 @@ ipcMain.handle('dialog:openFolder', async () => {
   if (result.canceled) return []
   return result.filePaths
 })
+
 // Handle scan
 ipcMain.handle('scan:start', async (_event, folders, includeSubfolders, scanType, similarityThreshold) => {
   const results = await scanFolders(
@@ -126,18 +121,6 @@ ipcMain.handle('scan:start', async (_event, folders, includeSubfolders, scanType
   return results
 })
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-    win = null
-  }
-})
-
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow()
-  }
-})
 // Handle move to quarantine
 ipcMain.handle('files:moveToQuarantine', async (_event, paths: string[]) => {
   const quarantineDir = path.join(os.homedir(), 'Pictures', 'DupeFinder-Quarantine')
@@ -157,8 +140,6 @@ ipcMain.handle('files:moveToQuarantine', async (_event, paths: string[]) => {
   }
   return moved
 })
-
-app.whenReady().then(createWindow)
 
 // Get machine fingerprint
 ipcMain.handle('machine:fingerprint', () => {
@@ -195,7 +176,6 @@ ipcMain.handle('machine:activate', async (_event, licenceKey: string, accountId:
     }
   )
   const data = await response.json()
-  console.log('Machine activation response:', response.status, JSON.stringify(data))
   return { status: response.status, data }
 })
 
@@ -221,3 +201,18 @@ ipcMain.handle('machine:validate', async (_event, licenceKey: string, accountId:
   const data = await response.json()
   return { status: response.status, data }
 })
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit()
+    win = null
+  }
+})
+
+app.on('activate', () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow()
+  }
+})
+
+app.whenReady().then(createWindow)

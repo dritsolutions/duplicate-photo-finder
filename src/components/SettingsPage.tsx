@@ -226,8 +226,20 @@ function SettingsPage() {
         </p>
         <button
           onClick={async () => {
-            await window.electronAPI.checkForUpdates()
-            alert('Checking for updates... You will be notified if an update is available.')
+            try {
+              const response = await fetch('https://api.github.com/repos/dritsolutions/duplicate-photo-finder/releases/latest', {
+                headers: { 'User-Agent': 'duplicate-photo-finder' }
+              })
+              const data = await response.json()
+              const latest = (data.tag_name || '').replace('v', '')
+              if (latest && latest !== '1.0.1') {
+                alert(`Version ${latest} is available! Click Download Update to get it.`)
+              } else {
+                alert('You are on the latest version!')
+              }
+            } catch {
+              alert('Could not check for updates. Please check your internet connection.')
+            }
           }}
           style={{
             padding: '10px 20px',

@@ -16,7 +16,7 @@ interface Window {
     activateMachine: (licenceKey: string, accountId: string, licenceId: string) => Promise<any>
     validateMachine: (licenceKey: string, accountId: string) => Promise<any>
     onUpdaterEvent: (callback: (event: string, data: any) => void) => void
-    installUpdate: () => Promise<void>
-    checkForUpdates: () => Promise<any>
+    checkForUpdates: () => Promise<void>
+    downloadUpdate: () => Promise<void>
   }
 }
