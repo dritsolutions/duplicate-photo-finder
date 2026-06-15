@@ -19,7 +19,7 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, 'public')
   : RENDERER_DIST
 
-const CURRENT_VERSION = '1.0.2'
+const CURRENT_VERSION = '1.0.3'
 const GITHUB_RELEASES_URL = 'https://github.com/dritsolutions/duplicate-photo-finder/releases/latest'
 const GITHUB_API_URL = 'https://api.github.com/repos/dritsolutions/duplicate-photo-finder/releases/latest'
 

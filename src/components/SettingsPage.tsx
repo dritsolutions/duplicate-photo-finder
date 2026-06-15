@@ -222,7 +222,7 @@ function SettingsPage() {
           🔄 Updates
         </h2>
         <p style={{ fontSize: '0.8rem', color: '#555', marginBottom: '12px' }}>
-          Current version: v1.0.1
+          Current version: v1.0.3
         </p>
         <button
           onClick={async () => {

@@ -4,9 +4,9 @@ import "node:fs";
 import "node:os";
 import "node:url";
 import "node:path";
-import { M, R, V } from "./main--gRfQF3g.js";
+import { M as _, R as D, V as I } from "./main-BguOmxSe.js";
 export {
-  M as MAIN_DIST,
-  R as RENDERER_DIST,
-  V as VITE_DEV_SERVER_URL
+  _ as MAIN_DIST,
+  D as RENDERER_DIST,
+  I as VITE_DEV_SERVER_URL
 };
