@@ -237,6 +237,10 @@ function LicencePage({ onActivated }: LicencePageProps) {
         </p>
         <a
           href="#"
+          onClick={(e) => {
+            e.preventDefault()
+            window.electronAPI.openPurchaseLink()
+          }}
           style={{
             display: 'inline-block',
             padding: '8px 16px',
@@ -246,6 +250,7 @@ function LicencePage({ onActivated }: LicencePageProps) {
             color: '#6c63ff',
             fontSize: '0.85rem',
             textDecoration: 'none',
+            cursor: 'pointer',
           }}
         >
           🛒 Purchase a Licence

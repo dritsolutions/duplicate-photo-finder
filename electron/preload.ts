@@ -23,6 +23,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('updater:available', (_e, data) => callback('updater:available', data))
   },
   checkForUpdates: () => ipcRenderer.invoke('updater:check'),
-  downloadUpdate: () => ipcRenderer.invoke('updater:download'),
-  registerTrial: () => ipcRenderer.invoke('trial:register'),
+ downloadUpdate: () => ipcRenderer.invoke('updater:download'),
+  openPurchaseLink: () => ipcRenderer.invoke('open:purchase'),
 })

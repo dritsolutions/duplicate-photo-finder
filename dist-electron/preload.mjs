@@ -14,5 +14,5 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
   },
   checkForUpdates: () => electron.ipcRenderer.invoke("updater:check"),
   downloadUpdate: () => electron.ipcRenderer.invoke("updater:download"),
-  registerTrial: () => electron.ipcRenderer.invoke("trial:register")
+  openPurchaseLink: () => electron.ipcRenderer.invoke("open:purchase")
 });

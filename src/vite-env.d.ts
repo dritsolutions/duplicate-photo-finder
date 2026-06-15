@@ -18,6 +18,6 @@ interface Window {
     onUpdaterEvent: (callback: (event: string, data: any) => void) => void
     checkForUpdates: () => Promise<void>
     downloadUpdate: () => Promise<void>
-    registerTrial: () => Promise<any>
+    openPurchaseLink: () => Promise<void>
   }
 }

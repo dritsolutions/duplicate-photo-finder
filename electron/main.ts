@@ -97,6 +97,11 @@ ipcMain.handle('updater:download', () => {
   shell.openExternal(GITHUB_RELEASES_URL)
 })
 
+// Open purchase link
+ipcMain.handle('open:purchase', () => {
+  shell.openExternal('https://buy.stripe.com/00w28t9nVaRUdwsfLd0Ba00')
+})
+
 // Handle folder picker dialog
 ipcMain.handle('dialog:openFolder', async () => {
   const result = await dialog.showOpenDialog(win!, {
