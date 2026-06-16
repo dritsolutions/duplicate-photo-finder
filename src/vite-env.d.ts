@@ -18,6 +18,10 @@ interface Window {
     onUpdaterEvent: (callback: (event: string, data: any) => void) => void
     checkForUpdates: () => Promise<void>
     downloadUpdate: () => Promise<void>
-    openPurchaseLink: () => Promise<void>
+  openPurchaseLink: () => Promise<void>
+    registerTrial: () => Promise<any>
+    organisePhotos: (sourceFolder: string, destFolder: string, mode: string, includeSubfolders: boolean) => Promise<any>
+    onOrganiseProgress: (callback: (data: { current: number, total: number, file: string }) => void) => void
+    removeOrganiseProgressListener: () => void
   }
 }

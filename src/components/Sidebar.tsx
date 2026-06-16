@@ -4,9 +4,10 @@ interface SidebarProps {
 }
 
 function Sidebar({ currentPage, onNavigate }: SidebarProps) {
-  const navItems = [
+ const navItems = [
     { id: 'scan', icon: '🔍', label: 'New Scan' },
     { id: 'results', icon: '📋', label: 'Results' },
+    { id: 'organise', icon: '📂', label: 'Organise' },
     { id: 'settings', icon: '⚙️', label: 'Settings' },
     { id: 'licence', icon: '🔑', label: 'Licence' },
   ]

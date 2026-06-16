@@ -25,4 +25,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkForUpdates: () => ipcRenderer.invoke('updater:check'),
  downloadUpdate: () => ipcRenderer.invoke('updater:download'),
   openPurchaseLink: () => ipcRenderer.invoke('open:purchase'),
+  registerTrial: () => ipcRenderer.invoke('trial:register'),
+  organisePhotos: (sourceFolder: string, destFolder: string, mode: string, includeSubfolders: boolean) =>
+    ipcRenderer.invoke('photos:organise', sourceFolder, destFolder, mode, includeSubfolders),
+  onOrganiseProgress: (callback: (data: { current: number, total: number, file: string }) => void) =>
+    ipcRenderer.on('organise:progress', (_event, data) => callback(data)),
+  removeOrganiseProgressListener: () =>
+    ipcRenderer.removeAllListeners('organise:progress'),
 })

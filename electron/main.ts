@@ -1,3 +1,4 @@
+import exifr from 'exifr'
 import { Menu } from 'electron'
 import crypto from 'node:crypto'
 import fs from 'node:fs'
@@ -102,6 +103,97 @@ ipcMain.handle('open:purchase', () => {
   shell.openExternal('https://buy.stripe.com/00w28t9nVaRUdwsfLd0Ba00')
 })
 
+// Organise photos by year and month
+ipcMain.handle('photos:organise', async (_event, sourceFolder: string, destFolder: string, mode: string, includeSubfolders: boolean) => {
+  const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff', '.tif', '.cr2', '.nef', '.arw', '.dng', '.heic'])
+  
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+  function collectFiles(dir: string, isRoot: boolean): string[] {
+    const files: string[] = []
+    try {
+      const entries = fs.readdirSync(dir, { withFileTypes: true })
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name)
+        if (entry.isDirectory()) {
+          if (includeSubfolders || isRoot) {
+            files.push(...collectFiles(fullPath, false))
+          }
+        } else if (entry.isFile()) {
+          const ext = path.extname(entry.name).toLowerCase()
+          if (IMAGE_EXTENSIONS.has(ext)) files.push(fullPath)
+        }
+      }
+    } catch {}
+    return files
+  }
+
+  const files = collectFiles(sourceFolder, true)
+  let organised = 0
+  let skipped = 0
+  let errors = 0
+
+  for (let i = 0; i < files.length; i++) {
+    const filePath = files[i]
+    win?.webContents.send('organise:progress', {
+      current: i + 1,
+      total: files.length,
+      file: filePath,
+    })
+
+    try {
+      let date: Date | null = null
+
+      // Try to get date from EXIF
+      try {
+        const exif = await exifr.parse(filePath, ['DateTimeOriginal', 'CreateDate'])
+        if (exif?.DateTimeOriginal) date = new Date(exif.DateTimeOriginal)
+        else if (exif?.CreateDate) date = new Date(exif.CreateDate)
+      } catch {}
+
+      // Fall back to file modified date
+      if (!date || isNaN(date.getTime())) {
+        const stat = fs.statSync(filePath)
+        date = stat.mtime
+      }
+
+      const year = date.getFullYear().toString()
+      const month = MONTHS[date.getMonth()]
+      const targetDir = path.join(destFolder, year, month)
+
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true })
+      }
+
+      const filename = path.basename(filePath)
+      let targetPath = path.join(targetDir, filename)
+
+      // Handle filename conflicts
+      if (fs.existsSync(targetPath)) {
+        const ext = path.extname(filename)
+        const base = path.basename(filename, ext)
+        let counter = 1
+        while (fs.existsSync(targetPath)) {
+          targetPath = path.join(targetDir, `${base}_${counter}${ext}`)
+          counter++
+        }
+      }
+
+      if (mode === 'move') {
+        fs.renameSync(filePath, targetPath)
+      } else {
+        fs.copyFileSync(filePath, targetPath)
+      }
+
+      organised++
+    } catch (err) {
+      console.error('Error organising file:', filePath, err)
+      errors++
+    }
+  }
+
+  return { organised, skipped, errors }
+})
 // Handle folder picker dialog
 ipcMain.handle('dialog:openFolder', async () => {
   const result = await dialog.showOpenDialog(win!, {

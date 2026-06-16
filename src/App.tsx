@@ -1,3 +1,4 @@
+import OrganisePage from './components/OrganisePage'
 import { useTrial } from './hooks/useTrial'
 import UpdateNotification from './components/UpdateNotification'
 import LicencePage from './components/LicencePage'
@@ -50,6 +51,7 @@ function App() {
             <h1 style={{ fontSize: '1.3rem', fontWeight: 600 }}>
               {currentPage === 'scan' && '🔍 New Scan'}
               {currentPage === 'results' && '📋 Results'}
+              {currentPage === 'organise' && '📂 Organise Photos'}
               {currentPage === 'settings' && '⚙️ Settings'}
               {currentPage === 'licence' && '🔑 Licence'}
             </h1>
@@ -86,6 +88,7 @@ function App() {
               onUpgrade={() => setCurrentPage('licence')}
             />
           )}
+          {currentPage === 'organise' && <OrganisePage />}
           {currentPage === 'settings' && <SettingsPage />}
           {currentPage === 'licence' && (
             <LicencePage onActivated={() => setIsLicenced(true)} />
